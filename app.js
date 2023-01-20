@@ -7,6 +7,7 @@ const decimalButton = document.querySelector('.decimal-button');
 const zeroButton = document.querySelector('.zero-button');
 const changeSignsButton = document.querySelector('.change-sign-button');
 const buttons = document.querySelectorAll('.button');
+const percentButton = document.querySelector('.percent-button');
 
 const MAX_LENGTH = 10;
 const OPERATORS = new Set(['+', '-', '÷', '×']);
@@ -17,13 +18,7 @@ let equation = {
 	operator: null,
 	right: null,
 };
-
 let currentSide = 'left';
-
-// let leftNumber = null;
-// let currentOperator = null;
-// let rightNumber = null;
-
 let lastAnswer = null;
 
 buttons.forEach((button) => {
@@ -31,6 +26,10 @@ buttons.forEach((button) => {
 		button.classList.add('pressed');
 		setTimeout(() => button.classList.remove('pressed'), 200);
 	});
+});
+
+percentButton.addEventListener('click', () => {
+	result.value = parseFloat(result.value.trim()) / 100;
 });
 
 equalsButton.addEventListener('click', () => {
@@ -137,6 +136,8 @@ function resetActiveOperators() {
 }
 
 function operate(operator, leftTerm, rightTerm) {
+	leftTerm = parseFloat(leftTerm);
+	rightTerm = parseFloat(rightTerm);
 	let answer = 0;
 	console.log(`${leftTerm} ${operator} ${rightTerm}`);
 	switch (operator) {
