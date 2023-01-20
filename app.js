@@ -21,7 +21,7 @@ let lastAnswer = null;
 buttons.forEach((button) => {
 	button.addEventListener('click', () => {
 		button.classList.add('pressed');
-		setTimeout(() => button.classList.remove('pressed'), 150);
+		setTimeout(() => button.classList.remove('pressed'), 200);
 	});
 });
 
@@ -52,19 +52,27 @@ changeSignsButton.addEventListener('click', () => {
 
 clearButton.addEventListener('click', () => {
 	result.value = '0';
+	leftNumber = null;
 	currentOperator = null;
+	rightNumber = null;
 	lastAnswer = null;
 	resetActiveOperators();
 });
 
 decimalButton.addEventListener('click', () => {
-	if (!result.value.includes('.') && result.value.length <= MAX_LENGTH) {
+	if (lastAnswer !== null) {
+		result.value = '0.';
+		lastAnswer = null;
+	} else if (!result.value.includes('.') && result.value.length <= MAX_LENGTH) {
 		result.value += '.';
 	}
 });
 
 zeroButton.addEventListener('click', () => {
-	if (currentOperator !== null) {
+	if (lastAnswer !== null) {
+		result.value = '0';
+		lastAnswer = null;
+	} else if (currentOperator !== null) {
 		result.value = '0';
 	} else if (result.value.trim() !== '0' && result.value.length <= MAX_LENGTH) {
 		result.value += '0';
@@ -75,8 +83,10 @@ numberButtons.forEach((button) => {
 	button.addEventListener('click', () => {
 		let currText = result.value.trim();
 		resetActiveOperators();
-		console.log(currentOperator);
-		if (currText === '0' || currentOperator !== null || lastAnswer !== null) {
+		if (lastAnswer !== null) {
+			result.value = button.textContent;
+			lastAnswer = null;
+		} else if (currText === '0' || currentOperator !== null) {
 			result.value = button.textContent;
 		} else if (result.value.length <= MAX_LENGTH) {
 			result.value += button.textContent;
@@ -91,15 +101,6 @@ numberButtons.forEach((button) => {
 		// }
 	});
 });
-
-function isAllNumbers(values) {
-	for (const value of values) {
-		if (OPERATORS.has(value) || value === ',') {
-			return false;
-		}
-	}
-	return true;
-}
 
 function setOperatorActive(operator) {
 	operatorButtons.forEach((button) => {
