@@ -47,8 +47,31 @@ button {
 
 .orange {
     background-color: rgb(208, 135, 0);
+    color: white;
+    transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
 }
 
+
+.active {
+    background-color: white;
+    color: rgb(208, 135, 0);
+    transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
+}
+
+.pressed {
+    /* background-color: rgb(255 255 255 / 30%); */
+    filter: brightness(140%);
+    transition: filter 75ms ease-in-out;
+}
+
+.equals-button.pressed {
+    filter: brightness(120%) !important;
+
+}
+
+.button {
+    transition: filter 75ms ease-in-out;
+}
 
 .calculator {
     display: flex;
@@ -69,13 +92,20 @@ button {
     height: 100%;
     gap: .5rem;
     padding: 1rem;
-    /* border: 1px solid red; */
 }
 
 .buttons-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: .5rem;
+}
+
+/* .number-button {
+    transition: background 75ms ease-in-out;
+} */
+
+.button {
+    /* filter: brightness(140%); */
 }
 
 .zero {

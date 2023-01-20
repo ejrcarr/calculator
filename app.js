@@ -6,6 +6,7 @@ const equalsButton = document.querySelector('.equals-button');
 const decimalButton = document.querySelector('.decimal-button');
 const zeroButton = document.querySelector('.zero-button');
 const changeSignsButton = document.querySelector('.change-sign-button');
+const buttons = document.querySelectorAll('.button');
 
 const MAX_LENGTH = 10;
 const OPERATORS = new Set(['+', '-', '÷', '×']);
@@ -17,15 +18,24 @@ let rightNumber = null;
 
 let lastAnswer = null;
 
+buttons.forEach((button) => {
+	button.addEventListener('click', () => {
+		button.classList.add('pressed');
+		setTimeout(() => button.classList.remove('pressed'), 150);
+	});
+});
+
 equalsButton.addEventListener('click', () => {
 	rightNumber = parseFloat(result.value.trim());
 	console.log(`${leftNumber} ${currentOperator} ${rightNumber}`);
 	operate(currentOperator, leftNumber, rightNumber);
 	currentOperator = null;
+	resetActiveOperators();
 });
 
 operatorButtons.forEach((operator) => {
 	operator.addEventListener('click', () => {
+		setOperatorActive(operator.textContent);
 		leftNumber = parseFloat(result.value.trim());
 		currentOperator = operator.textContent;
 	});
@@ -44,6 +54,7 @@ clearButton.addEventListener('click', () => {
 	result.value = '0';
 	currentOperator = null;
 	lastAnswer = null;
+	resetActiveOperators();
 });
 
 decimalButton.addEventListener('click', () => {
@@ -63,6 +74,7 @@ zeroButton.addEventListener('click', () => {
 numberButtons.forEach((button) => {
 	button.addEventListener('click', () => {
 		let currText = result.value.trim();
+		resetActiveOperators();
 		console.log(currentOperator);
 		if (currText === '0' || currentOperator !== null || lastAnswer !== null) {
 			result.value = button.textContent;
@@ -87,6 +99,22 @@ function isAllNumbers(values) {
 		}
 	}
 	return true;
+}
+
+function setOperatorActive(operator) {
+	operatorButtons.forEach((button) => {
+		if (operator === button.textContent) {
+			button.classList.add('active');
+		} else {
+			button.classList.remove('active');
+		}
+	});
+}
+
+function resetActiveOperators() {
+	operatorButtons.forEach((button) => {
+		button.classList.remove('active');
+	});
 }
 
 function operate(operator, leftTerm, rightTerm) {
