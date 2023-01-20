@@ -11,6 +11,10 @@ body {
     place-content: center;
     height: 100vh;
     font-family: 'Montserrat', sans-serif;
+    background-image: url(./background.jpg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .result {
@@ -59,7 +63,6 @@ button {
 }
 
 .pressed {
-    /* background-color: rgb(255 255 255 / 30%); */
     filter: brightness(140%);
     transition: filter 150ms ease-in-out;
 }
@@ -100,16 +103,15 @@ button {
     gap: .5rem;
 }
 
-/* .number-button {
-    transition: background 75ms ease-in-out;
-} */
-
-.button {
-    /* filter: brightness(140%); */
+.buttons-row-bottom {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: .5rem;
+    margin: 0 .5rem;
 }
 
 .zero {
-    width: 166px;
+    width: calc(150px + .5rem);
     border-radius: 50px;
     text-align: start;
     padding: 0 25px;
@@ -119,3 +121,26 @@ button {
     font-family:'Times New Roman', Times, serif;
     font-weight: 900;
 }
+
+@media screen and (max-width: 950px) {
+    .calculator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        scale: 1.1;
+    }
+    input {
+        max-width: 375px;
+        align-self: center;
+    }
+    
+    .buttons {
+        padding: none;
+        height: 450px;
+    }
+} 
