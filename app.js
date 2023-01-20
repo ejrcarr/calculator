@@ -12,9 +12,17 @@ const MAX_LENGTH = 10;
 const OPERATORS = new Set(['+', '-', '÷', '×']);
 const NUMBERS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
-let leftNumber = null;
-let currentOperator = null;
-let rightNumber = null;
+let equation = {
+	left: null,
+	operator: null,
+	right: null,
+};
+
+let currentSide = 'left';
+
+// let leftNumber = null;
+// let currentOperator = null;
+// let rightNumber = null;
 
 let lastAnswer = null;
 
@@ -27,17 +35,33 @@ buttons.forEach((button) => {
 
 equalsButton.addEventListener('click', () => {
 	rightNumber = parseFloat(result.value.trim());
-	console.log(`${leftNumber} ${currentOperator} ${rightNumber}`);
-	operate(currentOperator, leftNumber, rightNumber);
-	currentOperator = null;
+	console.log(`${equation.left} ${equation.operator} ${equation.right}`);
+	operate(equation.operator, equation.left, equation.right);
+	equation.left = null;
+	equation.operator = null;
+	equation.right = null;
+	currentSide = 'left';
 	resetActiveOperators();
 });
 
 operatorButtons.forEach((operator) => {
 	operator.addEventListener('click', () => {
 		setOperatorActive(operator.textContent);
-		leftNumber = parseFloat(result.value.trim());
-		currentOperator = operator.textContent;
+		if (
+			equation.left !== null &&
+			equation.operator !== null &&
+			equation.right !== null
+		) {
+			equation.left = operate(equation.operator, equation.left, equation.right);
+			equation.right = null;
+		} else if (equation.left === null) {
+			equation.left = lastAnswer;
+		} else {
+			leftNumber = parseFloat(result.value.trim().replace(',', ''));
+			equation.left = leftNumber;
+		}
+		equation.operator = operator.textContent;
+		currentSide = 'right';
 	});
 });
 
@@ -45,17 +69,20 @@ changeSignsButton.addEventListener('click', () => {
 	let trimmedContent = result.value.trim();
 	if (trimmedContent && trimmedContent.charAt(0) !== '-') {
 		result.value = '-' + result.value;
+		equation[currentSide] = result.value;
 	} else {
 		result.value = result.value.substring(1);
+		equation[currentSide] = result.value;
 	}
 });
 
 clearButton.addEventListener('click', () => {
 	result.value = '0';
-	leftNumber = null;
-	currentOperator = null;
-	rightNumber = null;
+	equation.left = null;
+	equation.operator = null;
+	equation.right = null;
 	lastAnswer = null;
+	currentSide = 'left';
 	resetActiveOperators();
 });
 
@@ -72,8 +99,9 @@ zeroButton.addEventListener('click', () => {
 	if (lastAnswer !== null) {
 		result.value = '0';
 		lastAnswer = null;
-	} else if (currentOperator !== null) {
+	} else if (equation.operator !== null) {
 		result.value = '0';
+		equation.left = 'null';
 	} else if (result.value.trim() !== '0' && result.value.length <= MAX_LENGTH) {
 		result.value += '0';
 	}
@@ -81,24 +109,14 @@ zeroButton.addEventListener('click', () => {
 
 numberButtons.forEach((button) => {
 	button.addEventListener('click', () => {
-		let currText = result.value.trim();
 		resetActiveOperators();
-		if (lastAnswer !== null) {
-			result.value = button.textContent;
-			lastAnswer = null;
-		} else if (currText === '0' || currentOperator !== null) {
+		console.log(equation);
+		if (equation[currentSide] === null || equation[currentSide] === '0') {
 			result.value = button.textContent;
 		} else if (result.value.length <= MAX_LENGTH) {
 			result.value += button.textContent;
 		}
-
-		// if (
-		// 	result.value.length > 3 &&
-		// 	result.value.trim().charAt(result.value.length - 1) !== '.'
-		// ) {
-		// 	let resultInteger = parseInt(result.value.replace(',', ''));
-		// 	result.value = resultInteger.toLocaleString('en-US');
-		// }
+		equation[currentSide] = result.value;
 	});
 });
 
@@ -133,7 +151,7 @@ function operate(operator, leftTerm, rightTerm) {
 			answer = leftTerm / rightTerm;
 			break;
 		case '+':
-			answer = leftTerm * rightTerm;
+			answer = leftTerm + rightTerm;
 			break;
 		case '-':
 			answer = leftTerm - rightTerm;
@@ -141,11 +159,13 @@ function operate(operator, leftTerm, rightTerm) {
 		default:
 			return;
 	}
-	answer = parseFloat(answer).toLocaleString('en-US', {
+
+	lastAnswer = answer;
+	result.value = answer.toLocaleString('en-US', {
 		maximumFractionDigits:
 			MAX_LENGTH - answer.toString().split('.')[0].length - 1,
 		minimumFractionDigits: 0,
 	});
-	lastAnswer = answer;
-	result.value = answer;
+	console.log(answer);
+	return answer;
 }
