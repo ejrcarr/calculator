@@ -61,7 +61,7 @@ button {
 .pressed {
     /* background-color: rgb(255 255 255 / 30%); */
     filter: brightness(140%);
-    transition: filter 75ms ease-in-out;
+    transition: filter 150ms ease-in-out;
 }
 
 .equals-button.pressed {
@@ -70,7 +70,7 @@ button {
 }
 
 .button {
-    transition: filter 75ms ease-in-out;
+    transition: filter 150ms ease-in-out;
 }
 
 .calculator {
