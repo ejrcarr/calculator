@@ -9,115 +9,180 @@ const changeSignsButton = document.querySelector('.change-sign-button');
 const buttons = document.querySelectorAll('.button');
 const percentButton = document.querySelector('.percent-button');
 
-const MAX_LENGTH = 10;
-const OPERATORS = new Set(['+', '-', '÷', '×']);
-const NUMBERS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+const MAX_LENGTH = 9;
+const OPERATIONS = {
+	'+': (a, b) => a + b,
+	'-': (a, b) => a - b,
+	'÷': (a, b) => {
+		if (b !== 0) {
+			return a / b;
+		}
+		return null;
+	},
+	'×': (a, b) => a * b,
+	'%': (a, b) => a / b,
+};
 
 let equation = {
 	left: null,
 	operator: null,
 	right: null,
 };
+
 let currentSide = 'left';
 let lastAnswer = null;
 
-buttons.forEach((button) => {
-	button.addEventListener('click', () => {
-		button.classList.add('pressed');
-		setTimeout(() => button.classList.remove('pressed'), 200);
+initializeNumberButtonsFunction();
+initializeButtonClickEffects();
+initializeOperatorFunctions();
+equalsButton.addEventListener('click', handleEquals);
+clearButton.addEventListener('click', handleClear);
+decimalButton.addEventListener('click', handleDecimalButton);
+zeroButton.addEventListener('click', handleZeroButton);
+changeSignsButton.addEventListener('click', handleChangeSigns);
+percentButton.addEventListener('click', handlePercentButtion);
+
+function initializeButtonClickEffects() {
+	buttons.forEach((button) => {
+		button.addEventListener('click', addOnClickEffect);
 	});
-});
+}
 
-percentButton.addEventListener('click', () => {
-	result.value = parseFloat(result.value.trim()) / 100;
-});
+function addOnClickEffect() {
+	this.classList.add('pressed');
+	setTimeout(() => this.classList.remove('pressed'), 200);
+}
 
-equalsButton.addEventListener('click', () => {
-	rightNumber = parseFloat(result.value.trim());
-	console.log(`${equation.left} ${equation.operator} ${equation.right}`);
+function handlePercentButtion() {
+	operate(percentButton.textContent, getCurrentResult(), 100);
+}
+
+function handleEquals() {
+	equation.right = getCurrentResult();
 	operate(equation.operator, equation.left, equation.right);
+	resetEquation();
+}
+
+function resetEquation() {
 	equation.left = null;
 	equation.operator = null;
 	equation.right = null;
 	currentSide = 'left';
 	resetActiveOperators();
-});
+}
 
-operatorButtons.forEach((operator) => {
-	operator.addEventListener('click', () => {
-		setOperatorActive(operator.textContent);
-		if (
-			equation.left !== null &&
-			equation.operator !== null &&
-			equation.right !== null
-		) {
-			equation.left = operate(equation.operator, equation.left, equation.right);
-			equation.right = null;
-		} else if (equation.left === null) {
-			equation.left = lastAnswer;
-		} else {
-			leftNumber = parseFloat(result.value.trim().replace(',', ''));
-			equation.left = leftNumber;
-		}
-		equation.operator = operator.textContent;
-		currentSide = 'right';
+function getCurrentResult() {
+	return Number(result.value.replace(',', ''));
+}
+
+function initializeOperatorFunctions() {
+	operatorButtons.forEach((operator) => {
+		operator.addEventListener('click', handleOperatorButtons);
 	});
-});
+}
 
-changeSignsButton.addEventListener('click', () => {
+function handleOperatorButtons() {
+	setOperatorActive(this.textContent);
+	if (equation.right !== null) {
+		lastAnswer = operate(equation.operator, equation.left, equation.right);
+		equation.left = lastAnswer;
+		equation.right = null;
+	} else {
+		equation.left = getCurrentResult();
+	}
+	equation.operator = this.textContent;
+	currentSide = 'right';
+}
+
+function handleChangeSigns() {
 	let trimmedContent = result.value.trim();
-	if (trimmedContent && trimmedContent.charAt(0) !== '-') {
+	if (equation.operator !== null && equation.right === null) {
+		result.value = '-0';
+	} else if (trimmedContent && trimmedContent.charAt(0) !== '-') {
 		result.value = '-' + result.value;
-		equation[currentSide] = result.value;
 	} else {
 		result.value = result.value.substring(1);
-		equation[currentSide] = result.value;
 	}
-});
+	equation[currentSide] = getCurrentResult();
+}
 
-clearButton.addEventListener('click', () => {
+function handleClear() {
 	result.value = '0';
-	equation.left = null;
-	equation.operator = null;
-	equation.right = null;
-	lastAnswer = null;
-	currentSide = 'left';
-	resetActiveOperators();
-});
-
-decimalButton.addEventListener('click', () => {
-	if (lastAnswer !== null) {
-		result.value = '0.';
+	if (this.textContent === 'C') {
+		equation.right = null;
+		this.textContent = 'AC';
+		setOperatorActive(equation.operator);
+	} else {
 		lastAnswer = null;
+		resetEquation();
+		resetActiveOperators();
+	}
+}
+
+function handleDecimalButton() {
+	if (equation[currentSide] == '-0') {
+		result.value = '-0' + this.textContent;
+	} else if (equation[currentSide] === null) {
+		result.value = '0.';
 	} else if (!result.value.includes('.') && result.value.length <= MAX_LENGTH) {
 		result.value += '.';
 	}
-});
+	equation[currentSide] = getCurrentResult();
+}
 
-zeroButton.addEventListener('click', () => {
-	if (lastAnswer !== null) {
+function handleZeroButton() {
+	if (equation[currentSide] === null || equation[currentSide] === '0') {
 		result.value = '0';
-		lastAnswer = null;
-	} else if (equation.operator !== null) {
-		result.value = '0';
-		equation.left = 'null';
-	} else if (result.value.trim() !== '0' && result.value.length <= MAX_LENGTH) {
+	} else if (
+		result.value.trim() !== '0' &&
+		result.value.length <= MAX_LENGTH &&
+		!result.value.includes('e')
+	) {
+		clearButton.textContent = 'C';
 		result.value += '0';
+	} else if (result.value.length > MAX_LENGTH || result.value.includes('e')) {
+		result.value = getCurrentResult() + '0';
+		result.value = new Intl.NumberFormat(undefined, {
+			notation: 'scientific',
+		})
+			.format(getCurrentResult())
+			.replace('E', 'e');
 	}
-});
+	equation[currentSide] = getCurrentResult();
+}
 
-numberButtons.forEach((button) => {
-	button.addEventListener('click', () => {
-		resetActiveOperators();
-		console.log(equation);
-		if (equation[currentSide] === null || equation[currentSide] === '0') {
-			result.value = button.textContent;
-		} else if (result.value.length <= MAX_LENGTH) {
-			result.value += button.textContent;
-		}
-		equation[currentSide] = result.value;
+function initializeNumberButtonsFunction() {
+	numberButtons.forEach((button) => {
+		button.addEventListener('click', handleNumberButton);
 	});
-});
+}
+
+function handleNumberButton() {
+	resetActiveOperators();
+	clearButton.textContent = 'C';
+	if (result.value == '-0' && result.value === '-0.') {
+		result.value = '-' + this.textContent;
+	} else if (
+		equation[currentSide] === null ||
+		(result.value == '0' && result.value != '0.')
+	) {
+		result.value = this.textContent;
+	} else if (result.value.length <= MAX_LENGTH && !result.value.includes('e')) {
+		result.value += this.textContent;
+	} else if (result.value.length > MAX_LENGTH || result.value.includes('e')) {
+		result.value = getCurrentResult() + this.textContent;
+		result.value = new Intl.NumberFormat(undefined, {
+			notation: 'scientific',
+		})
+			.format(getCurrentResult())
+			.replace('E', 'e');
+		console.log('in this if');
+	}
+	console.log(result.value);
+	console.log(getCurrentResult());
+	// result.value = getStringVersion(getCurrentResult());
+	equation[currentSide] = getCurrentResult();
+}
 
 function setOperatorActive(operator) {
 	operatorButtons.forEach((button) => {
@@ -135,38 +200,44 @@ function resetActiveOperators() {
 	});
 }
 
-function operate(operator, leftTerm, rightTerm) {
-	leftTerm = parseFloat(leftTerm);
-	rightTerm = parseFloat(rightTerm);
-	let answer = 0;
-	console.log(`${leftTerm} ${operator} ${rightTerm}`);
-	switch (operator) {
-		case '×':
-			answer = leftTerm * rightTerm;
-			break;
-		case '÷':
-			if (rightTerm === 0) {
-				result.value = `Can't do that`;
-				return;
-			}
-			answer = leftTerm / rightTerm;
-			break;
-		case '+':
-			answer = leftTerm + rightTerm;
-			break;
-		case '-':
-			answer = leftTerm - rightTerm;
-			break;
-		default:
-			return;
+function getStringVersion(number) {
+	console.log(number);
+	console.log('getStringFunc');
+	if (number.toString().includes(',')) {
+		return number.toLocaleString();
+	} else {
+		return number.toLocaleString('en-US', {
+			maximumFractionDigits:
+				MAX_LENGTH - number.toString().split('.')[0].length - 1,
+			minimumFractionDigits: 0,
+		});
 	}
+}
 
+function operate(operator, leftTerm, rightTerm) {
+	if ((leftTerm === null || rightTerm) === null || operator === null) {
+		return;
+	}
+	answer = OPERATIONS[operator](leftTerm, rightTerm);
+	console.log(`${leftTerm} ${operator} ${rightTerm} = ${answer}`);
 	lastAnswer = answer;
-	result.value = answer.toLocaleString('en-US', {
-		maximumFractionDigits:
-			MAX_LENGTH - answer.toString().split('.')[0].length - 1,
-		minimumFractionDigits: 0,
-	});
-	console.log(answer);
+	if (answer === null) {
+		result.value = 'Nope';
+		return;
+	} else if (answer < 0.000001) {
+		if (answer.toString().split('E')[0].length > 5) {
+			let answerArray = answer.toString().split('e');
+			answerArray[0] = Math.round(answerArray[0].substring(0, 3));
+			answer = answerArray.join('e');
+		}
+		result.value = answer;
+	} else if (answer > 100000000) {
+		let scientificNotation = new Intl.NumberFormat(undefined, {
+			notation: 'scientific',
+		}).format(answer);
+		result.value = scientificNotation.replace('E', 'e');
+	} else {
+		result.value = getStringVersion(answer);
+	}
 	return answer;
 }
