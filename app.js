@@ -27,7 +27,7 @@ const OPERATIONS = {
 		if (b !== 0) {
 			return a / b;
 		}
-		return null;
+		return "Can't";
 	},
 	'*': (a, b) => a * b,
 	'**': (a, b) => a ** b,
@@ -71,19 +71,34 @@ document.addEventListener('keydown', (event) => {
 		} else {
 			result.value += keyName;
 		}
-	} else if (Object.keys(OPERATIONS).includes(keyName) || keyName === 'x') {
+	} else if (
+		((Object.keys(OPERATIONS).includes(keyName) || keyName === 'x') &&
+			NUMBERS.has(result.value[result.value.length - 1])) ||
+		(result.value[result.value.length - 1] === ' ' &&
+			!Object.keys(OPERATIONS).includes(result.value[result.value.length - 2]))
+	) {
 		if (keyName === 'x') {
-			result.value += '  ';
+			result.value += ' × ';
 		} else if (result.value[result.value.length - 1] != ' ') {
 			result.value += ` ${keyName} `;
 		} else {
 			result.value += `${keyName} `;
 		}
+	} else if (
+		keyName === '.' &&
+		(Object.keys(OPERATIONS).includes(result.value[result.value.length - 2]) ||
+			NUMBERS.has(result.value[result.value.length - 1])) &&
+		!hasDecimal(result.value)
+	) {
+		result.value += '.';
 	} else if (keyName === 'Backspace') {
 		result.value = result.value.substring(0, result.value.length - 1);
 	} else if (keyName === 'Escape') {
 		result.value = '0';
 	} else if (keyName === 'Enter') {
+		if (!NUMBERS.has(result.value[result.value.length - 1])) {
+			return;
+		}
 		for (let currOperator of OPERATION_ORDER) {
 			while (result.value.includes(currOperator)) {
 				let operatorIndex = result.value.indexOf(` ${currOperator} `);
@@ -119,8 +134,20 @@ document.addEventListener('keydown', (event) => {
 					result.value.substring(rightNumberIndexRight);
 			}
 		}
+		result.value = result.value.trim();
 	}
 });
+
+function hasDecimal(string) {
+	for (let i = string.length - 1; i >= 0; i--) {
+		if (string[i] === ' ') {
+			return false;
+		} else if (string[i] === '.') {
+			return true;
+		}
+	}
+	return false;
+}
 
 function hasAnOperator(string) {
 	for (let letter of string) {
