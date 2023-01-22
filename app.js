@@ -64,18 +64,34 @@ document.addEventListener('keydown', (event) => {
 	event.preventDefault();
 	result.focus();
 	const keyName = event.key;
-	console.log(keyName);
-	if (NUMBERS.has(keyName)) {
+	if (NUMBERS.has(keyName) && result.value.length < 15) {
 		if (result.value === '0' || result.value === '') {
 			result.value = keyName;
+		} else if (result.value === '-0') {
+			result.value = '-' + keyName;
 		} else {
 			result.value += keyName;
 		}
 	} else if (
-		((Object.keys(OPERATIONS).includes(keyName) || keyName === 'x') &&
+		keyName === '-' &&
+		(result.value == '0' ||
+			(!NUMBERS.has(result.value[result.value.length - 1]) &&
+				!NUMBERS.has(result.value[result.value.length - 2]))) &&
+		result.value.length < 15
+	) {
+		if (result.value == '0') {
+			result.value = '-0';
+		} else if (!NUMBERS.has(result.value[result.value.length - 1])) {
+			result.value += '-';
+		}
+	} else if (
+		((Object.keys(OPERATIONS).includes(keyName) &&
 			NUMBERS.has(result.value[result.value.length - 1])) ||
-		(result.value[result.value.length - 1] === ' ' &&
-			!Object.keys(OPERATIONS).includes(result.value[result.value.length - 2]))
+			(result.value[result.value.length - 1] === ' ' &&
+				!Object.keys(OPERATIONS).includes(
+					result.value[result.value.length - 2]
+				))) &&
+		result.value.length < 15
 	) {
 		if (keyName === 'x') {
 			result.value += ' × ';
@@ -88,7 +104,8 @@ document.addEventListener('keydown', (event) => {
 		keyName === '.' &&
 		(Object.keys(OPERATIONS).includes(result.value[result.value.length - 2]) ||
 			NUMBERS.has(result.value[result.value.length - 1])) &&
-		!hasDecimal(result.value)
+		!hasDecimal(result.value) &&
+		result.value.length < 15
 	) {
 		result.value += '.';
 	} else if (keyName === 'Backspace') {
@@ -100,7 +117,7 @@ document.addEventListener('keydown', (event) => {
 			return;
 		}
 		for (let currOperator of OPERATION_ORDER) {
-			while (result.value.includes(currOperator)) {
+			while (result.value.includes(` ${currOperator} `)) {
 				let operatorIndex = result.value.indexOf(` ${currOperator} `);
 				let leftNumberIndexLeft = operatorIndex - 1;
 				let leftNumberIndexRight = operatorIndex;
@@ -108,13 +125,15 @@ document.addEventListener('keydown', (event) => {
 				let rightNumberIndexRight = operatorIndex + 3;
 				while (
 					NUMBERS.has(result.value.charAt(leftNumberIndexLeft)) ||
-					result.value.charAt(leftNumberIndexLeft) == '.'
+					result.value.charAt(leftNumberIndexLeft) == '.' ||
+					result.value.charAt(leftNumberIndexLeft) == '-'
 				) {
 					leftNumberIndexLeft--;
 				}
 				while (
 					NUMBERS.has(result.value.charAt(rightNumberIndexRight)) ||
-					result.value.charAt(rightNumberIndexRight) == '.'
+					result.value.charAt(rightNumberIndexRight) == '.' ||
+					result.value.charAt(rightNumberIndexRight) == '-'
 				) {
 					rightNumberIndexRight++;
 				}
@@ -126,8 +145,6 @@ document.addEventListener('keydown', (event) => {
 					result.value.substring(rightNumberIndexLeft, rightNumberIndexRight)
 				);
 				let currentAnswer = OPERATIONS[currOperator](leftTerm, rightTerm);
-				console.log(leftTerm);
-				console.log(rightTerm);
 				result.value =
 					result.value.substring(0, leftNumberIndexLeft) +
 					` ${currentAnswer} ` +
@@ -135,6 +152,11 @@ document.addEventListener('keydown', (event) => {
 			}
 		}
 		result.value = result.value.trim();
+	}
+	if (result.value.length >= MAX_LENGTH - 1) {
+		result.classList.add('smaller-font');
+	} else {
+		result.classList.remove('smaller-font');
 	}
 });
 
@@ -276,7 +298,7 @@ function initializeNumberButtonsFunction() {
 function handleNumberButton() {
 	resetActiveOperators();
 	clearButton.textContent = 'C';
-	if (result.value == '-0' && result.value === '-0.') {
+	if (result.value == '-0' || result.value === '-0.') {
 		result.value = '-' + this.textContent;
 	} else if (
 		equation[currentSide] === null ||
@@ -292,11 +314,7 @@ function handleNumberButton() {
 		})
 			.format(getCurrentResult())
 			.replace('E', 'e');
-		console.log('in this if');
 	}
-	console.log(result.value);
-	console.log(getCurrentResult());
-	// result.value = getStringVersion(getCurrentResult());
 	equation[currentSide] = getCurrentResult();
 }
 
@@ -317,8 +335,6 @@ function resetActiveOperators() {
 }
 
 function getStringVersion(number) {
-	console.log(number);
-	console.log('getStringFunc');
 	if (number.toString().includes(',')) {
 		return number.toLocaleString();
 	} else {
