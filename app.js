@@ -85,8 +85,8 @@ document.addEventListener('keydown', (event) => {
 			result.value += '-';
 		}
 	} else if (
-		((Object.keys(OPERATIONS).includes(keyName) &&
-			NUMBERS.has(result.value[result.value.length - 1])) ||
+		Object.keys(OPERATIONS).includes(keyName) &&
+		(NUMBERS.has(result.value[result.value.length - 1]) ||
 			(result.value[result.value.length - 1] === ' ' &&
 				!Object.keys(OPERATIONS).includes(
 					result.value[result.value.length - 2]
@@ -109,13 +109,18 @@ document.addEventListener('keydown', (event) => {
 	) {
 		result.value += '.';
 	} else if (keyName === 'Backspace') {
-		result.value = result.value.substring(0, result.value.length - 1);
+		if (result.value[result.value.length - 1] === ' ') {
+			result.value = result.value.substring(0, result.value.length - 3);
+		} else {
+			result.value = result.value.substring(0, result.value.length - 1);
+		}
 	} else if (keyName === 'Escape') {
 		result.value = '0';
 	} else if (keyName === 'Enter') {
 		if (!NUMBERS.has(result.value[result.value.length - 1])) {
 			return;
 		}
+		result.value = result.value.trim();
 		for (let currOperator of OPERATION_ORDER) {
 			while (result.value.includes(` ${currOperator} `)) {
 				let operatorIndex = result.value.indexOf(` ${currOperator} `);
