@@ -10,7 +10,7 @@ const buttons = document.querySelectorAll('.button');
 const percentButton = document.querySelector('.percent-button');
 
 const MAX_LENGTH = 9;
-const OPERATION_ORDER = ['×', '*', '÷', '/', '%', '+', '-'];
+const OPERATION_ORDER = ['^', '×', '*', '÷', '/', '%', '+', '-'];
 const NUMBERS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 const OPERATIONS = {
 	'+': (a, b) => a + b,
@@ -30,7 +30,7 @@ const OPERATIONS = {
 		return "Can't";
 	},
 	'*': (a, b) => a * b,
-	'**': (a, b) => a ** b,
+	'^': (a, b) => a ** b,
 	x: (a, b) => a * b,
 	percent: (a, b) => a / b,
 };
