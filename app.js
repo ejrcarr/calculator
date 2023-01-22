@@ -10,6 +10,8 @@ const buttons = document.querySelectorAll('.button');
 const percentButton = document.querySelector('.percent-button');
 
 const MAX_LENGTH = 9;
+const OPERATION_ORDER = ['×', '*', '÷', '/', '%', '+', '-'];
+const NUMBERS = new Set(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 const OPERATIONS = {
 	'+': (a, b) => a + b,
 	'-': (a, b) => a - b,
@@ -20,7 +22,17 @@ const OPERATIONS = {
 		return null;
 	},
 	'×': (a, b) => a * b,
-	'%': (a, b) => a / b,
+	'%': (a, b) => a % b,
+	'/': (a, b) => {
+		if (b !== 0) {
+			return a / b;
+		}
+		return null;
+	},
+	'*': (a, b) => a * b,
+	'**': (a, b) => a ** b,
+	x: (a, b) => a * b,
+	percent: (a, b) => a / b,
 };
 
 let equation = {
@@ -42,6 +54,83 @@ zeroButton.addEventListener('click', handleZeroButton);
 changeSignsButton.addEventListener('click', handleChangeSigns);
 percentButton.addEventListener('click', handlePercentButtion);
 
+window.onkeydown = function (event) {
+	if (event.keyCode === 32) {
+		event.preventDefault();
+	}
+};
+
+document.addEventListener('keydown', (event) => {
+	event.preventDefault();
+	result.focus();
+	const keyName = event.key;
+	console.log(keyName);
+	if (NUMBERS.has(keyName)) {
+		if (result.value === '0' || result.value === '') {
+			result.value = keyName;
+		} else {
+			result.value += keyName;
+		}
+	} else if (Object.keys(OPERATIONS).includes(keyName) || keyName === 'x') {
+		if (keyName === 'x') {
+			result.value += '  ';
+		} else if (result.value[result.value.length - 1] != ' ') {
+			result.value += ` ${keyName} `;
+		} else {
+			result.value += `${keyName} `;
+		}
+	} else if (keyName === 'Backspace') {
+		result.value = result.value.substring(0, result.value.length - 1);
+	} else if (keyName === 'Escape') {
+		result.value = '0';
+	} else if (keyName === 'Enter') {
+		for (let currOperator of OPERATION_ORDER) {
+			while (result.value.includes(currOperator)) {
+				let operatorIndex = result.value.indexOf(` ${currOperator} `);
+				let leftNumberIndexLeft = operatorIndex - 1;
+				let leftNumberIndexRight = operatorIndex;
+				let rightNumberIndexLeft = operatorIndex + 3;
+				let rightNumberIndexRight = operatorIndex + 3;
+				while (
+					NUMBERS.has(result.value.charAt(leftNumberIndexLeft)) ||
+					result.value.charAt(leftNumberIndexLeft) == '.'
+				) {
+					leftNumberIndexLeft--;
+				}
+				while (
+					NUMBERS.has(result.value.charAt(rightNumberIndexRight)) ||
+					result.value.charAt(rightNumberIndexRight) == '.'
+				) {
+					rightNumberIndexRight++;
+				}
+				rightNumberIndexRight++;
+				let leftTerm = Number(
+					result.value.substring(leftNumberIndexLeft, leftNumberIndexRight)
+				);
+				let rightTerm = Number(
+					result.value.substring(rightNumberIndexLeft, rightNumberIndexRight)
+				);
+				let currentAnswer = OPERATIONS[currOperator](leftTerm, rightTerm);
+				console.log(leftTerm);
+				console.log(rightTerm);
+				result.value =
+					result.value.substring(0, leftNumberIndexLeft) +
+					` ${currentAnswer} ` +
+					result.value.substring(rightNumberIndexRight);
+			}
+		}
+	}
+});
+
+function hasAnOperator(string) {
+	for (let letter of string) {
+		if (Object.keys(OPERATIONS).includes(letter)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function initializeButtonClickEffects() {
 	buttons.forEach((button) => {
 		button.addEventListener('click', addOnClickEffect);
@@ -54,7 +143,7 @@ function addOnClickEffect() {
 }
 
 function handlePercentButtion() {
-	operate(percentButton.textContent, getCurrentResult(), 100);
+	operate('percent', getCurrentResult(), 100);
 }
 
 function handleEquals() {
