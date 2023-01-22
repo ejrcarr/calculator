@@ -122,6 +122,10 @@ button {
     font-weight: 900;
 }
 
+.smaller-font {
+    font-size: 2rem;
+}
+
 @media screen and (max-width: 950px) {
     .calculator {
         display: flex;
