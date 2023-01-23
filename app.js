@@ -64,7 +64,17 @@ document.addEventListener('keydown', (event) => {
 	event.preventDefault();
 	result.focus();
 	const keyName = event.key;
-	if (NUMBERS.has(keyName) && result.value.length < 15) {
+
+	if (getCurrentResult() === NaN) {
+		result.value = 0;
+	}
+
+	const IS_LESS_THAN_MAX = result.value.length < 15;
+	const IS_NUMBER = NUMBERS.has(keyName);
+	const LAST_CHARACTER = result.value[result.value.length - 1];
+	const SECOND_LAST_CHARACTER = result.value[result.value.length - 2];
+
+	if (IS_NUMBER && IS_LESS_THAN_MAX) {
 		if (result.value === '0' || result.value === '') {
 			result.value = keyName;
 		} else if (result.value === '-0') {
@@ -75,41 +85,33 @@ document.addEventListener('keydown', (event) => {
 	} else if (
 		keyName === '-' &&
 		(result.value == '0' ||
-			(!NUMBERS.has(result.value[result.value.length - 1]) &&
-				!NUMBERS.has(result.value[result.value.length - 2]))) &&
-		result.value.length < 15
+			(!NUMBERS.has(LAST_CHARACTER) && !NUMBERS.has(SECOND_LAST_CHARACTER))) &&
+		LAST_CHARACTER !== '-' &&
+		IS_LESS_THAN_MAX
 	) {
 		if (result.value == '0') {
 			result.value = '-0';
-		} else if (!NUMBERS.has(result.value[result.value.length - 1])) {
+		} else if (!NUMBERS.has(LAST_CHARACTER)) {
 			result.value += '-';
 		}
 	} else if (
 		Object.keys(OPERATIONS).includes(keyName) &&
-		(NUMBERS.has(result.value[result.value.length - 1]) ||
-			(result.value[result.value.length - 1] === ' ' &&
-				!Object.keys(OPERATIONS).includes(
-					result.value[result.value.length - 2]
-				))) &&
-		result.value.length < 15
+		(NUMBERS.has(LAST_CHARACTER) ||
+			(LAST_CHARACTER === ' ' &&
+				!Object.keys(OPERATIONS).includes(SECOND_LAST_CHARACTER))) &&
+		IS_LESS_THAN_MAX
 	) {
 		if (keyName === 'x') {
 			result.value += ' × ';
-		} else if (result.value[result.value.length - 1] != ' ') {
+		} else if (LAST_CHARACTER != ' ') {
 			result.value += ` ${keyName} `;
 		} else {
 			result.value += `${keyName} `;
 		}
-	} else if (
-		keyName === '.' &&
-		(Object.keys(OPERATIONS).includes(result.value[result.value.length - 2]) ||
-			NUMBERS.has(result.value[result.value.length - 1])) &&
-		!hasDecimal(result.value) &&
-		result.value.length < 15
-	) {
+	} else if (keyName === '.' && !hasDecimal(result.value) && IS_LESS_THAN_MAX) {
 		result.value += '.';
 	} else if (keyName === 'Backspace') {
-		if (result.value[result.value.length - 1] === ' ') {
+		if (LAST_CHARACTER === ' ') {
 			result.value = result.value.substring(0, result.value.length - 3);
 		} else {
 			result.value = result.value.substring(0, result.value.length - 1);
@@ -117,7 +119,7 @@ document.addEventListener('keydown', (event) => {
 	} else if (keyName === 'Escape') {
 		result.value = '0';
 	} else if (keyName === 'Enter') {
-		if (!NUMBERS.has(result.value[result.value.length - 1])) {
+		if (!NUMBERS.has(LAST_CHARACTER)) {
 			return;
 		}
 		result.value = result.value.trim();
