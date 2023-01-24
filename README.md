@@ -1,6 +1,6 @@
 # Calculator
 
-Live: <a href='www.google.com'>Calculator</a>
+Live: <a href='https://ejrcarr.github.io/calculator/'>Calculator</a>
 
 ## Context
 This is my implementation of a calculator using HTML, CSS, and vanilla JavaScript. I attempted to recreate the calculator app interface and features on IOS. The web app works responsively on mobile and tablet screens with the calculator instead taking up the whole viewport width and height and no background. 
