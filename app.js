@@ -378,41 +378,52 @@ function resetActiveOperators() {
 }
 
 function getStringVersion(number) {
-	if (number.toString().includes(',')) {
-		return number.toLocaleString();
-	} else {
-		return number.toLocaleString('en-US', {
-			maximumFractionDigits:
-				MAX_LENGTH - number.toString().split('.')[0].length - 1,
-			minimumFractionDigits: 0,
-		});
+	if (
+		number.toString().length < MAX_LENGTH &&
+		number.toString().includes('e')
+	) {
+		return number.toString();
 	}
+	return number.toLocaleString('en-US', {
+		maximumFractionDigits:
+			MAX_LENGTH - number.toString().split('.')[0].length - 1,
+		minimumFractionDigits: 0,
+	});
+}
+
+function cleanNumber(number) {
+	let stringVersion = number.toString();
+	let newAnswer = number;
+	if (
+		stringVersion.length < MAX_LENGTH ||
+		(stringVersion.includes('.') && !stringVersion.includes('e'))
+	) {
+		return getStringVersion(number);
+	} else if (stringVersion.includes('.')) {
+		let answerArray = stringVersion.split('e');
+		answerArray[0] =
+			Math.round(
+				(Number(answerArray[0].substring(0, 3)) + Number.EPSILON) * 100
+			) / 100;
+		newAnswer = answerArray.join('e');
+	} else {
+		let scientificNotation = new Intl.NumberFormat(undefined, {
+			notation: 'scientific',
+		}).format(newAnswer);
+		newAnswer = scientificNotation.replace('E', 'e');
+	}
+	return newAnswer;
 }
 
 function operate(operator, leftTerm, rightTerm) {
 	if ((leftTerm === null || rightTerm) === null || operator === null) {
 		return;
 	}
-	answer = OPERATIONS[operator](leftTerm, rightTerm);
-	console.log(`${leftTerm} ${operator} ${rightTerm} = ${answer}`);
+	let answer = OPERATIONS[operator](leftTerm, rightTerm);
 	lastAnswer = answer;
-	if (answer === null) {
-		result.value = 'Nope';
-		return;
-	} else if (answer < 0.000001 && answer > 0) {
-		if (answer.toString().split('E')[0].length > 5) {
-			let answerArray = answer.toString().split('e');
-			answerArray[0] = Math.round(answerArray[0].substring(0, 3));
-			answer = answerArray.join('e');
-		}
-		result.value = answer;
-	} else if (answer > 100000000) {
-		let scientificNotation = new Intl.NumberFormat(undefined, {
-			notation: 'scientific',
-		}).format(answer);
-		result.value = scientificNotation.replace('E', 'e');
-	} else {
-		result.value = getStringVersion(answer);
-	}
+	result.value = cleanNumber(answer);
+
+	console.log(`${leftTerm} ${operator} ${rightTerm} = ${answer}`);
+
 	return answer;
 }
