@@ -56,8 +56,11 @@ percentButton.addEventListener('click', handlePercentButtion);
 
 document.addEventListener('keydown', (event) => {
 	event.preventDefault();
-	result.focus();
 	const keyName = event.key;
+
+	if (NUMBERS.has(keyName) || Object.keys(OPERATIONS).includes(keyName)) {
+		result.focus();
+	}
 
 	if (
 		result.value === 'NaN' ||
@@ -396,7 +399,7 @@ function operate(operator, leftTerm, rightTerm) {
 	if (answer === null) {
 		result.value = 'Nope';
 		return;
-	} else if (answer < 0.000001) {
+	} else if (answer < 0.000001 && answer > 0) {
 		if (answer.toString().split('E')[0].length > 5) {
 			let answerArray = answer.toString().split('e');
 			answerArray[0] = Math.round(answerArray[0].substring(0, 3));
