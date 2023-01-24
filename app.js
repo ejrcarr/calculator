@@ -70,6 +70,7 @@ document.addEventListener('keydown', (event) => {
 	}
 
 	const IS_LESS_THAN_MAX = result.value.length < 15;
+	const OPERATOR_LESS_THAN_MAX = result.value.length < 12;
 	const IS_NUMBER = NUMBERS.has(keyName);
 	const LAST_CHARACTER = result.value[result.value.length - 1];
 	const SECOND_LAST_CHARACTER = result.value[result.value.length - 2];
@@ -99,7 +100,7 @@ document.addEventListener('keydown', (event) => {
 		(NUMBERS.has(LAST_CHARACTER) ||
 			(LAST_CHARACTER === ' ' &&
 				!Object.keys(OPERATIONS).includes(SECOND_LAST_CHARACTER))) &&
-		IS_LESS_THAN_MAX
+		OPERATOR_LESS_THAN_MAX
 	) {
 		if (keyName === 'x') {
 			result.value += ' × ';
@@ -133,14 +134,16 @@ document.addEventListener('keydown', (event) => {
 				while (
 					NUMBERS.has(result.value.charAt(leftNumberIndexLeft)) ||
 					result.value.charAt(leftNumberIndexLeft) == '.' ||
-					result.value.charAt(leftNumberIndexLeft) == '-'
+					result.value.charAt(leftNumberIndexLeft) == '-' ||
+					result.value.charAt(leftNumberIndexLeft) == 'e'
 				) {
 					leftNumberIndexLeft--;
 				}
 				while (
 					NUMBERS.has(result.value.charAt(rightNumberIndexRight)) ||
 					result.value.charAt(rightNumberIndexRight) == '.' ||
-					result.value.charAt(rightNumberIndexRight) == '-'
+					result.value.charAt(rightNumberIndexRight) == '-' ||
+					result.value.charAt(leftNumberIndexLeft) == 'e'
 				) {
 					rightNumberIndexRight++;
 				}
@@ -152,6 +155,9 @@ document.addEventListener('keydown', (event) => {
 					result.value.substring(rightNumberIndexLeft, rightNumberIndexRight)
 				);
 				let currentAnswer = OPERATIONS[currOperator](leftTerm, rightTerm);
+				console.log(
+					`${leftTerm} ${currOperator} ${rightTerm} = ${currentAnswer}`
+				);
 				result.value =
 					result.value.substring(0, leftNumberIndexLeft) +
 					` ${currentAnswer} ` +
@@ -161,6 +167,25 @@ document.addEventListener('keydown', (event) => {
 		result.value = result.value.trim();
 	}
 	if (result.value.length >= MAX_LENGTH - 1) {
+		if (result.value.length > 15) {
+			tempAns = getCurrentResult();
+			if (tempAns > 100000000) {
+				console.log(tempAns);
+				let scientificNotation = new Intl.NumberFormat(undefined, {
+					notation: 'scientific',
+				}).format(tempAns);
+				tempAns = scientificNotation.replace('E', 'e');
+				console.log(tempAns);
+
+				// result.value = tempAns;
+			}
+			if (tempAns.toString().split('e')[0].length > 5) {
+				let answerArray = tempAns.toString().split('e');
+				answerArray[0] = Math.round(answerArray[0].substring(0, 3));
+				tempAns = answerArray.join('e');
+			}
+			result.value = tempAns;
+		}
 		result.classList.add('smaller-font');
 	} else {
 		result.classList.remove('smaller-font');
