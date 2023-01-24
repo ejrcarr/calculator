@@ -332,7 +332,13 @@ function initializeNumberButtonsFunction() {
 function handleNumberButton() {
 	resetActiveOperators();
 	clearButton.textContent = 'C';
-	if (result.value == '-0' || result.value === '-0.') {
+	if (
+		result.value == '-0' &&
+		equation.operator !== null &&
+		equation.right === null
+	) {
+		result.value = this.textContent;
+	} else if (result.value == '-0') {
 		result.value = '-' + this.textContent;
 	} else if (
 		equation[currentSide] === null ||
