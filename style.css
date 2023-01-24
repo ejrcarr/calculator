@@ -126,7 +126,7 @@ button {
     font-size: 2rem;
 }
 
-@media screen and (max-width: 950px) {
+@media screen and (max-width: 700px) {
     .calculator {
         display: flex;
         justify-content: center;
