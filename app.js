@@ -54,18 +54,16 @@ zeroButton.addEventListener('click', handleZeroButton);
 changeSignsButton.addEventListener('click', handleChangeSigns);
 percentButton.addEventListener('click', handlePercentButtion);
 
-window.onkeydown = function (event) {
-	if (event.keyCode === 32) {
-		event.preventDefault();
-	}
-};
-
 document.addEventListener('keydown', (event) => {
 	event.preventDefault();
 	result.focus();
 	const keyName = event.key;
 
-	if (getCurrentResult() === NaN) {
+	if (
+		result.value === 'NaN' ||
+		result.value === 'Infinity' ||
+		result.value === "Can't"
+	) {
 		result.value = 0;
 	}
 
@@ -123,74 +121,78 @@ document.addEventListener('keydown', (event) => {
 		if (!NUMBERS.has(LAST_CHARACTER)) {
 			return;
 		}
-		result.value = result.value.trim();
-		for (let currOperator of OPERATION_ORDER) {
-			while (result.value.includes(` ${currOperator} `)) {
-				let operatorIndex = result.value.indexOf(` ${currOperator} `);
-				let leftNumberIndexLeft = operatorIndex - 1;
-				let leftNumberIndexRight = operatorIndex;
-				let rightNumberIndexLeft = operatorIndex + 3;
-				let rightNumberIndexRight = operatorIndex + 3;
-				while (
-					NUMBERS.has(result.value.charAt(leftNumberIndexLeft)) ||
-					result.value.charAt(leftNumberIndexLeft) == '.' ||
-					result.value.charAt(leftNumberIndexLeft) == '-' ||
-					result.value.charAt(leftNumberIndexLeft) == 'e'
-				) {
-					leftNumberIndexLeft--;
-				}
-				while (
-					NUMBERS.has(result.value.charAt(rightNumberIndexRight)) ||
-					result.value.charAt(rightNumberIndexRight) == '.' ||
-					result.value.charAt(rightNumberIndexRight) == '-' ||
-					result.value.charAt(leftNumberIndexLeft) == 'e'
-				) {
-					rightNumberIndexRight++;
-				}
-				rightNumberIndexRight++;
-				let leftTerm = Number(
-					result.value.substring(leftNumberIndexLeft, leftNumberIndexRight)
-				);
-				let rightTerm = Number(
-					result.value.substring(rightNumberIndexLeft, rightNumberIndexRight)
-				);
-				let currentAnswer = OPERATIONS[currOperator](leftTerm, rightTerm);
-				console.log(
-					`${leftTerm} ${currOperator} ${rightTerm} = ${currentAnswer}`
-				);
-				result.value =
-					result.value.substring(0, leftNumberIndexLeft) +
-					` ${currentAnswer} ` +
-					result.value.substring(rightNumberIndexRight);
-			}
-		}
+		getTotalResult();
 		result.value = result.value.trim();
 	}
 	if (result.value.length >= MAX_LENGTH - 1) {
 		if (result.value.length > 15) {
-			tempAns = getCurrentResult();
-			if (tempAns > 100000000) {
-				console.log(tempAns);
-				let scientificNotation = new Intl.NumberFormat(undefined, {
-					notation: 'scientific',
-				}).format(tempAns);
-				tempAns = scientificNotation.replace('E', 'e');
-				console.log(tempAns);
-
-				// result.value = tempAns;
-			}
-			if (tempAns.toString().split('e')[0].length > 5) {
-				let answerArray = tempAns.toString().split('e');
-				answerArray[0] = Math.round(answerArray[0].substring(0, 3));
-				tempAns = answerArray.join('e');
-			}
-			result.value = tempAns;
+			result.value = getCleanResult();
 		}
 		result.classList.add('smaller-font');
 	} else {
 		result.classList.remove('smaller-font');
 	}
 });
+
+function getCleanResult() {
+	tempAns = getCurrentResult();
+	if (tempAns > 100000000) {
+		let scientificNotation = new Intl.NumberFormat(undefined, {
+			notation: 'scientific',
+		}).format(tempAns);
+		tempAns = scientificNotation.replace('E', 'e');
+	}
+	if (tempAns.toString().split('e')[0].length > 5) {
+		let answerArray = tempAns.toString().split('e');
+		answerArray[0] = Math.round(answerArray[0].substring(0, 3));
+		tempAns = answerArray.join('e');
+	}
+	return tempAns;
+}
+
+function getTotalResult() {
+	result.value = result.value.trim();
+	for (let currOperator of OPERATION_ORDER) {
+		while (result.value.includes(` ${currOperator} `)) {
+			let operatorIndex = result.value.indexOf(` ${currOperator} `);
+			let leftNumberIndexLeft = operatorIndex - 1;
+			let leftNumberIndexRight = operatorIndex;
+			let rightNumberIndexLeft = operatorIndex + 3;
+			let rightNumberIndexRight = operatorIndex + 3;
+			while (
+				NUMBERS.has(result.value.charAt(leftNumberIndexLeft)) ||
+				result.value.charAt(leftNumberIndexLeft) == '.' ||
+				result.value.charAt(leftNumberIndexLeft) == '-' ||
+				result.value.charAt(leftNumberIndexLeft) == 'e'
+			) {
+				leftNumberIndexLeft--;
+			}
+			while (
+				NUMBERS.has(result.value.charAt(rightNumberIndexRight)) ||
+				result.value.charAt(rightNumberIndexRight) == '.' ||
+				result.value.charAt(rightNumberIndexRight) == '-' ||
+				result.value.charAt(rightNumberIndexRight) == 'e'
+			) {
+				rightNumberIndexRight++;
+			}
+			rightNumberIndexRight++;
+			let leftTerm = Number(
+				result.value.substring(leftNumberIndexLeft, leftNumberIndexRight)
+			);
+			let rightTerm = Number(
+				result.value.substring(rightNumberIndexLeft, rightNumberIndexRight)
+			);
+			let currentAnswer = OPERATIONS[currOperator](leftTerm, rightTerm);
+			console.log(
+				`${leftTerm} ${currOperator} ${rightTerm} = ${currentAnswer}`
+			);
+			result.value =
+				result.value.substring(0, leftNumberIndexLeft) +
+				` ${currentAnswer} ` +
+				result.value.substring(rightNumberIndexRight);
+		}
+	}
+}
 
 function hasDecimal(string) {
 	for (let i = string.length - 1; i >= 0; i--) {
