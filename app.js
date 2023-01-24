@@ -247,7 +247,7 @@ function resetEquation() {
 }
 
 function getCurrentResult() {
-	return Number(result.value.replace(',', ''));
+	return Number(result.value.replace(/\,/g, ''));
 }
 
 function initializeOperatorFunctions() {
